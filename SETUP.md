@@ -42,21 +42,89 @@ npm install
 Create a `.env` file in the root directory:
 
 ```env
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+# Supabase (Required)
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Google OAuth (Required for Google Sign-In)
+EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB=your-web-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS=your-ios-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID=your-android-client-id.apps.googleusercontent.com
+
+# Optional
 EXPO_PUBLIC_OPENWEATHER_API_KEY=your_openweather_api_key
 EXPO_PUBLIC_APP_URL=tacklehogs://
 ```
 
-## Step 4: Set Up Authentication Providers
+## Step 4: Set Up Google OAuth
 
-1. In Supabase Dashboard, go to Authentication > Providers
-2. Enable Google OAuth:
-   - Add your Google OAuth credentials
-   - Set redirect URL: `tacklehogs://`
-3. Enable Apple OAuth (iOS only):
-   - Configure Apple Sign In
-   - Set redirect URL: `tacklehogs://`
+### 4.1 Create Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the **Google+ API** (or People API) for your project
+
+### 4.2 Configure OAuth Consent Screen
+
+1. Go to **APIs & Services > OAuth consent screen**
+2. Select **External** user type (or Internal for Google Workspace)
+3. Fill in the required fields:
+   - App name: `TackleHogs`
+   - User support email: Your email
+   - Developer contact: Your email
+4. Add scopes: `email`, `profile`, `openid`
+5. Add test users if in testing mode
+
+### 4.3 Create OAuth Client IDs
+
+Go to **APIs & Services > Credentials > Create Credentials > OAuth Client ID**
+
+#### Web Application (Required for Web + Supabase)
+- Application type: **Web application**
+- Name: `TackleHogs Web`
+- Authorized JavaScript origins:
+  - `http://localhost:8081` (development)
+  - `https://your-domain.com` (production, if applicable)
+- Authorized redirect URIs:
+  - `https://zaqlrabgivfczuecioih.supabase.co/auth/v1/callback`
+- Copy the **Client ID** → use as `EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB`
+
+#### iOS Application
+- Application type: **iOS**
+- Name: `TackleHogs iOS`
+- Bundle ID: `com.tacklehogs.app`
+- Copy the **Client ID** → use as `EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS`
+
+#### Android Application
+- Application type: **Android**
+- Name: `TackleHogs Android`
+- Package name: `com.tacklehogs.app`
+- SHA-1 certificate fingerprint:
+  ```bash
+  # For debug keystore (development)
+  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android
+  
+  # On Windows
+  keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android
+  ```
+- Copy the **Client ID** → use as `EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID`
+
+### 4.4 Configure Supabase
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard/project/zaqlrabgivfczuecioih/auth/providers)
+2. Navigate to **Authentication > Providers > Google**
+3. Enable the Google provider
+4. Enter your **Web Client ID** and **Client Secret** (from the Web OAuth Client)
+5. Save the configuration
+
+### 4.5 Configure Redirect URLs in Supabase
+
+1. Go to **Authentication > URL Configuration**
+2. Set **Site URL**: `tacklehogs://`
+3. Add **Redirect URLs**:
+   - `tacklehogs://auth/callback`
+   - `http://localhost:8081` (for web development)
+   - `exp://localhost:8081` (for Expo Go development)
 
 ## Step 5: Deploy Edge Functions
 
@@ -101,9 +169,29 @@ You'll need to seed some initial data:
 
 ## Troubleshooting
 
-### Authentication Issues
-- Make sure OAuth redirect URLs are configured correctly
-- Check that `EXPO_PUBLIC_APP_URL` matches your app scheme
+### Google OAuth Issues
+
+**"redirect_uri_mismatch" error:**
+- Ensure the redirect URI in Google Cloud Console exactly matches: `https://zaqlrabgivfczuecioih.supabase.co/auth/v1/callback`
+- Check that your Web Client ID is configured in Supabase
+
+**"access_denied" error:**
+- Verify OAuth consent screen is configured and published (or user is added as test user)
+- Check that required scopes are added: `email`, `profile`, `openid`
+
+**Mobile sign-in not working:**
+- Verify the correct Client ID is used for each platform (iOS/Android)
+- For Android: Ensure SHA-1 fingerprint matches your debug/release keystore
+- For iOS: Ensure Bundle ID matches `com.tacklehogs.app`
+
+**"Google Client ID not configured" error:**
+- Add the required environment variables to your `.env` file
+- Restart the Expo development server after changing environment variables
+
+### General Authentication Issues
+- Make sure OAuth redirect URLs are configured correctly in Supabase
+- Check that `EXPO_PUBLIC_APP_URL` matches your app scheme (`tacklehogs://`)
+- Verify Supabase URL and anon key are correct
 
 ### Storage Issues
 - Ensure storage buckets are created and have proper RLS policies

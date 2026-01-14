@@ -1,23 +1,28 @@
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ActivityIndicator, Alert, Platform } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/hooks/use-auth';
-import { router } from 'expo-router';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
 
   const handleSignIn = async (provider: 'google' | 'apple') => {
     try {
-      setLoading(true);
+      setLoading(provider);
       await signIn(provider);
-      router.replace('/(tabs)');
-    } catch (error) {
+      // Navigation is handled by the auth state change in _layout.tsx
+    } catch (error: any) {
       console.error('Sign in error:', error);
+      const message = error?.message || 'An error occurred during sign in';
+      if (Platform.OS === 'web') {
+        alert(message);
+      } else {
+        Alert.alert('Sign In Error', message);
+      }
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -33,26 +38,30 @@ export default function LoginScreen() {
 
         <View style={styles.buttons}>
           <TouchableOpacity
-            style={[styles.button, styles.googleButton, loading && styles.buttonDisabled]}
+            style={[styles.button, styles.googleButton, loading !== null && styles.buttonDisabled]}
             onPress={() => handleSignIn('google')}
-            disabled={loading}
+            disabled={loading !== null}
           >
-            {loading ? (
+            {loading === 'google' ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <ThemedText style={styles.buttonText}>Sign in with Google</ThemedText>
+              <View style={styles.buttonContent}>
+                <ThemedText style={styles.buttonText}>Sign in with Google</ThemedText>
+              </View>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.appleButton, loading && styles.buttonDisabled]}
+            style={[styles.button, styles.appleButton, loading !== null && styles.buttonDisabled]}
             onPress={() => handleSignIn('apple')}
-            disabled={loading}
+            disabled={loading !== null}
           >
-            {loading ? (
+            {loading === 'apple' ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <ThemedText style={styles.buttonText}>Sign in with Apple</ThemedText>
+              <View style={styles.buttonContent}>
+                <ThemedText style={styles.buttonText}>Sign in with Apple</ThemedText>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -90,6 +99,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   googleButton: {
     backgroundColor: '#4285F4',

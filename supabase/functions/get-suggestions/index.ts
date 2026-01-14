@@ -21,9 +21,19 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Supabase configuration. SUPABASE_URL and SUPABASE_ANON_KEY must be set.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      supabaseAnonKey,
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
@@ -40,12 +50,42 @@ serve(async (req) => {
       );
     }
 
-    // Find nearest location
+    // Find nearest location using PostGIS distance calculation
+    // Note: This assumes locations table has latitude/longitude columns
+    // If using a different schema, adjust the query accordingly
     const { data: locations, error: locError } = await supabaseClient
       .from('locations')
-      .select('id, name, fish_species')
-      .order('distance', { ascending: true })
-      .limit(1);
+      .select('id, name, fish_species, latitude, longitude')
+      .limit(100); // Get multiple locations to calculate nearest
+    
+    if (locError) throw locError;
+
+    // Calculate nearest location manually if distance column doesn't exist
+    let nearestLocation = null;
+    let minDistance = Infinity;
+    
+    if (locations && locations.length > 0) {
+      for (const loc of locations) {
+        if (loc.latitude && loc.longitude) {
+          // Haversine distance calculation
+          const R = 3959; // Earth radius in miles
+          const dLat = (loc.latitude - latitude) * Math.PI / 180;
+          const dLon = (loc.longitude - longitude) * Math.PI / 180;
+          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(latitude * Math.PI / 180) * Math.cos(loc.latitude * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+          
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestLocation = loc;
+          }
+        }
+      }
+    }
+
+    const location = nearestLocation;
 
     if (locError) throw locError;
 
