@@ -4,6 +4,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BorderRadius, Spacing, Typography } from '@/constants/theme';
 import type { Database } from '@/lib/supabase/types';
 
 type TackleItem = Database['public']['Tables']['tackle_items']['Row'];
@@ -15,30 +16,56 @@ interface TackleItemCardProps {
 
 export function TackleItemCard({ item, onPress }: TackleItemCardProps) {
   const placeholderColor = useThemeColor({}, 'placeholder');
+  const borderColor = useThemeColor({}, 'border');
+  const accentColor = useThemeColor({}, 'accent');
+  const iconColor = useThemeColor({}, 'iconSecondary');
+
+  const getTypeIcon = (type: string): string => {
+    switch (type) {
+      case 'rod': return '🎣';
+      case 'reel': return '🔄';
+      case 'lure': return '🪱';
+      case 'line': return '🧵';
+      case 'hook': return '🪝';
+      default: return '📦';
+    }
+  };
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <ThemedView style={styles.card}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <ThemedView
+        variant="card"
+        shadow="md"
+        style={[styles.card, { borderColor }]}
+      >
         {item.image_url ? (
           <Image source={{ uri: item.image_url }} style={styles.image} contentFit="cover" />
         ) : (
           <View style={[styles.placeholder, { backgroundColor: placeholderColor }]}>
-            <IconSymbol name="tray.fill" size={32} />
+            <ThemedText style={styles.typeEmoji}>{getTypeIcon(item.type)}</ThemedText>
           </View>
         )}
         <View style={styles.content}>
-          <ThemedText type="defaultSemiBold" numberOfLines={1}>
+          <ThemedText type="defaultSemiBold" numberOfLines={1} style={styles.name}>
             {item.name}
           </ThemedText>
           {item.brand && (
-            <ThemedText type="subtitle" style={styles.brand}>
+            <ThemedText type="caption" numberOfLines={1} style={styles.brand}>
               {item.brand} {item.model || ''}
             </ThemedText>
           )}
-          <ThemedText type="caption" style={styles.type}>
-            {item.type}
-          </ThemedText>
+          <View style={[styles.typeBadge, { backgroundColor: `${accentColor}15` }]}>
+            <ThemedText style={[styles.typeText, { color: accentColor }]}>
+              {item.type}
+            </ThemedText>
+          </View>
         </View>
+        <IconSymbol
+          name="chevron.right"
+          size={16}
+          color={iconColor}
+          style={styles.chevron}
+        />
       </ThemedView>
     </TouchableOpacity>
   );
@@ -47,33 +74,51 @@ export function TackleItemCard({ item, onPress }: TackleItemCardProps) {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    gap: 12,
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    borderWidth: 1.5,
   },
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.md,
   },
   placeholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  typeEmoji: {
+    fontSize: 24,
+  },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    gap: 4,
+    gap: Spacing.xs,
+  },
+  name: {
+    fontSize: Typography.fontSize.base,
   },
   brand: {
-    opacity: 0.7,
+    marginTop: -2,
   },
-  type: {
+  typeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xxs,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.xs,
+  },
+  typeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '500',
     textTransform: 'capitalize',
-    opacity: 0.6,
+  },
+  chevron: {
+    marginLeft: Spacing.xs,
   },
 });

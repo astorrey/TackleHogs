@@ -4,6 +4,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatPoints, formatWeight, formatLength } from '@/lib/utils/formatting';
+import { BorderRadius, Spacing, Shadows, Typography } from '@/constants/theme';
 import type { LeaderboardEntry } from '@/lib/api/leaderboard';
 
 interface LeaderboardCardProps {
@@ -14,6 +15,10 @@ interface LeaderboardCardProps {
 
 export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
   const accentColor = useThemeColor({}, 'accent');
+  const borderColor = useThemeColor({}, 'border');
+  const warningColor = useThemeColor({}, 'warning');
+  const surfaceSecondaryColor = useThemeColor({}, 'surfaceSecondary');
+
   const getMetricValue = () => {
     switch (metric) {
       case 'points':
@@ -40,12 +45,34 @@ export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
     }
   };
 
+  const getRankDisplay = () => {
+    if (rank === 1) return { emoji: '🥇', color: '#FFD700' };
+    if (rank === 2) return { emoji: '🥈', color: '#C0C0C0' };
+    if (rank === 3) return { emoji: '🥉', color: '#CD7F32' };
+    return { emoji: null, color: accentColor };
+  };
+
+  const rankInfo = getRankDisplay();
+  const isTopThree = rank <= 3;
+
   return (
-    <ThemedView style={styles.card}>
-      <View style={styles.rankContainer}>
-        <ThemedText type="title" style={styles.rank}>
-          #{rank}
-        </ThemedText>
+    <ThemedView
+      variant="card"
+      shadow={isTopThree ? 'lg' : 'md'}
+      style={[
+        styles.card,
+        { borderColor },
+        isTopThree && styles.topThreeCard,
+      ]}
+    >
+      <View style={[styles.rankContainer, isTopThree && { backgroundColor: surfaceSecondaryColor }]}>
+        {rankInfo.emoji ? (
+          <ThemedText style={styles.rankEmoji}>{rankInfo.emoji}</ThemedText>
+        ) : (
+          <ThemedText type="defaultSemiBold" style={[styles.rank, { color: accentColor }]}>
+            #{rank}
+          </ThemedText>
+        )}
       </View>
 
       {entry.avatar_url ? (
@@ -59,7 +86,7 @@ export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
       )}
 
       <View style={styles.content}>
-        <ThemedText type="defaultSemiBold" numberOfLines={1}>
+        <ThemedText type="defaultSemiBold" numberOfLines={1} style={styles.name}>
           {entry.display_name || entry.username}
         </ThemedText>
         <View style={styles.metrics}>
@@ -67,14 +94,18 @@ export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
             <ThemedText type="caption" style={styles.metricLabel}>
               {getMetricLabel()}
             </ThemedText>
-            <ThemedText type="defaultSemiBold">{getMetricValue()}</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.metricValue}>
+              {getMetricValue()}
+            </ThemedText>
           </View>
           {metric !== 'catches' && (
             <View style={styles.metric}>
               <ThemedText type="caption" style={styles.metricLabel}>
                 Catches
               </ThemedText>
-              <ThemedText type="defaultSemiBold">{entry.total_catches}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={styles.metricValue}>
+                {entry.total_catches}
+              </ThemedText>
             </View>
           )}
         </View>
@@ -87,48 +118,65 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    gap: 12,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    borderWidth: 1.5,
+  },
+  topThreeCard: {
+    borderWidth: 1.5,
   },
   rankContainer: {
-    width: 40,
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankEmoji: {
+    fontSize: 24,
   },
   rank: {
-    fontSize: 20,
+    fontSize: Typography.fontSize.md,
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
   },
   avatarPlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: Typography.fontSize.lg,
     fontWeight: '600',
   },
   content: {
     flex: 1,
-    gap: 4,
+    gap: Spacing.xs,
+  },
+  name: {
+    fontSize: Typography.fontSize.base,
   },
   metrics: {
     flexDirection: 'row',
-    gap: 16,
+    gap: Spacing.xl,
   },
   metric: {
     gap: 2,
   },
   metricLabel: {
-    opacity: 0.6,
-    fontSize: 12,
+    fontSize: Typography.fontSize.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    fontSize: Typography.fontSize.sm,
   },
 });

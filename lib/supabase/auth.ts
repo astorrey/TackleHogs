@@ -128,6 +128,57 @@ export async function signInWithProvider(provider: 'google' | 'apple'): Promise<
 }
 
 /**
+ * Sign up with email and password - triggers email confirmation
+ */
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  username: string
+): Promise<AuthResponse> {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { username }, // Stored in user metadata
+    },
+  });
+  return {
+    data: { user: data.user ?? null, session: data.session ?? null },
+    error,
+  };
+}
+
+/**
+ * Sign in with email and password
+ */
+export async function signInWithEmail(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  return {
+    data: { user: data.user ?? null, session: data.session ?? null },
+    error,
+  };
+}
+
+/**
+ * Resend confirmation email
+ */
+export async function resendConfirmationEmail(
+  email: string
+): Promise<{ error: AuthError | null }> {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+  });
+  return { error };
+}
+
+/**
  * Sign out current user
  */
 export async function signOut(): Promise<{ error: AuthError | null }> {

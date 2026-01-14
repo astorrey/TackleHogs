@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Button } from '@/components/ui/button';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase/client';
 import { calculatePointsLocal } from '@/lib/services/points';
@@ -31,6 +33,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const surfaceColor = useThemeColor({}, 'surface');
   const accentColor = useThemeColor({}, 'accent');
+  const backgroundColor = useThemeColor({}, 'background');
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -129,14 +132,25 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <ThemedView style={styles.form}>
-        <ThemedText type="title" style={styles.title}>
-          Log Catch
-        </ThemedText>
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>
+            Log Catch
+          </ThemedText>
+          <ThemedText type="caption" style={styles.subtitle}>
+            Record your latest catch with details
+          </ThemedText>
+        </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Fish Species *</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>
+            Fish Species <ThemedText style={styles.required}>*</ThemedText>
+          </ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={fishSpeciesId}
@@ -147,7 +161,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Location</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Location</ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={locationId}
@@ -158,7 +172,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Tackle Used</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Tackle Used</ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={tackleItemId}
@@ -170,7 +184,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
 
         <View style={styles.row}>
           <View style={[styles.field, styles.half]}>
-            <ThemedText type="defaultSemiBold">Weight (lbs)</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.label}>Weight (lbs)</ThemedText>
             <TextInput
               style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
               value={weight}
@@ -181,7 +195,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
             />
           </View>
           <View style={[styles.field, styles.half]}>
-            <ThemedText type="defaultSemiBold">Length (in)</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.label}>Length (in)</ThemedText>
             <TextInput
               style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
               value={length}
@@ -194,7 +208,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Notes</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Notes</ThemedText>
           <TextInput
             style={[styles.input, styles.textArea, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={notes}
@@ -203,29 +217,33 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
             placeholderTextColor={textSecondaryColor}
             multiline
             numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Photo</ThemedText>
-          <TouchableOpacity style={[styles.imageButton, { borderColor }]} onPress={pickImage}>
-            <ThemedText>{photoUri ? 'Change Photo' : 'Take Photo'}</ThemedText>
-          </TouchableOpacity>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Photo</ThemedText>
+          <Button
+            variant="outline"
+            icon="camera"
+            onPress={pickImage}
+          >
+            {photoUri ? 'Change Photo' : 'Take Photo'}
+          </Button>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.cancelButton, { borderColor }]} onPress={onCancel}>
-            <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.submitButton, { backgroundColor: accentColor }, loading && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
+          <Button variant="outline" onPress={onCancel} style={styles.actionButton}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onPress={handleSubmit} 
+            loading={loading}
+            style={styles.actionButton}
           >
-            <ThemedText style={styles.submitButtonText}>
-              {loading ? 'Logging...' : 'Log Catch'}
-            </ThemedText>
-          </TouchableOpacity>
+            Log Catch
+          </Button>
         </View>
       </ThemedView>
     </ScrollView>
@@ -236,67 +254,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   form: {
-    padding: 20,
-    gap: 20,
+    padding: Spacing.xl,
+    gap: Spacing.lg,
+  },
+  header: {
+    marginBottom: Spacing.sm,
   },
   title: {
-    marginBottom: 10,
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
+    marginTop: Spacing.xs,
   },
   field: {
-    gap: 8,
+    gap: Spacing.sm,
+  },
+  label: {
+    fontSize: Typography.fontSize.sm,
+  },
+  required: {
+    color: '#DC2626',
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing.md,
   },
   half: {
     flex: 1,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 44,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: Typography.fontSize.base,
+    minHeight: 48,
   },
   textArea: {
     minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  imageButton: {
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 8,
-    alignItems: 'center',
+    paddingTop: Spacing.md,
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
   },
-  cancelButton: {
+  actionButton: {
     flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-  },
-  submitButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

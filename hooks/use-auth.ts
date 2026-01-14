@@ -1,6 +1,14 @@
-import { useEffect, useState } from 'react';
+import {
+    getSession,
+    onAuthStateChange,
+    resendConfirmationEmail as resendConfirmation,
+    signInWithEmail as signInWithEmailAuth,
+    signInWithProvider,
+    signOut,
+    signUpWithEmail as signUpWithEmailAuth
+} from '@/lib/supabase/auth';
 import { Session, User } from '@supabase/supabase-js';
-import { getCurrentUser, getSession, onAuthStateChange, signInWithProvider, signOut } from '@/lib/supabase/auth';
+import { useEffect, useState } from 'react';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +40,23 @@ export function useAuth() {
     if (error) throw error;
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    const { error } = await signInWithEmailAuth(email, password);
+    if (error) throw error;
+  };
+
+  const signUpWithEmail = async (email: string, password: string, username: string) => {
+    const { data, error } = await signUpWithEmailAuth(email, password, username);
+    if (error) throw error;
+    // Return whether email confirmation is needed (user exists but no session)
+    return { needsEmailConfirmation: !!data.user && !data.session };
+  };
+
+  const resendConfirmationEmail = async (email: string) => {
+    const { error } = await resendConfirmation(email);
+    if (error) throw error;
+  };
+
   const logout = async () => {
     const { error } = await signOut();
     if (error) throw error;
@@ -44,6 +69,9 @@ export function useAuth() {
     session,
     loading,
     signIn,
+    signInWithEmail,
+    signUpWithEmail,
+    resendConfirmationEmail,
     logout,
     isAuthenticated: !!user,
   };

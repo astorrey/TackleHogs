@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { LeaderboardCard } from '@/components/leaderboard/LeaderboardCard';
+import { PageHeader } from '@/components/ui/page-header';
 import { useAuth } from '@/hooks/use-auth';
 import { useLeaderboard, useFriendsLeaderboard } from '@/hooks/use-leaderboard';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
 
 type Metric = 'points' | 'catches' | 'weight' | 'length';
 type ViewType = 'state' | 'friends';
@@ -13,6 +17,14 @@ export default function LeaderboardScreen() {
   const { user } = useAuth();
   const [viewType, setViewType] = useState<ViewType>('state');
   const [metric, setMetric] = useState<Metric>('points');
+  const insets = useSafeAreaInsets();
+
+  const accentColor = useThemeColor({}, 'accent');
+  const borderColor = useThemeColor({}, 'border');
+  const borderMediumColor = useThemeColor({}, 'borderMedium');
+  const surfaceColor = useThemeColor({}, 'surface');
+  const surfaceSecondaryColor = useThemeColor({}, 'surfaceSecondary');
+  const surfaceTertiaryColor = useThemeColor({}, 'surfaceTertiary');
 
   const { entries: stateEntries, loading: stateLoading } = useLeaderboard(
     user?.user_metadata?.state || undefined,
@@ -26,46 +38,102 @@ export default function LeaderboardScreen() {
   const entries = viewType === 'state' ? stateEntries : friendsEntries;
   const loading = viewType === 'state' ? stateLoading : friendsLoading;
 
-  const metrics: { label: string; value: Metric }[] = [
-    { label: 'Points', value: 'points' },
-    { label: 'Catches', value: 'catches' },
-    { label: 'Weight', value: 'weight' },
-    { label: 'Length', value: 'length' },
+  const metrics: { label: string; value: Metric; emoji: string }[] = [
+    { label: 'Points', value: 'points', emoji: '⭐' },
+    { label: 'Catches', value: 'catches', emoji: '🐟' },
+    { label: 'Weight', value: 'weight', emoji: '⚖️' },
+    { label: 'Length', value: 'length', emoji: '📏' },
   ];
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={[styles.emptyIconContainer, { backgroundColor: `${accentColor}15` }]}>
+        <ThemedText style={styles.emptyIcon}>🏆</ThemedText>
+      </View>
+      <ThemedText type="subtitle" style={styles.emptyTitle}>
+        No entries yet
+      </ThemedText>
+      <ThemedText type="caption" style={styles.emptySubtext}>
+        {viewType === 'friends' 
+          ? 'Add friends to compete on the leaderboard!'
+          : 'Be the first to log a catch in your state!'
+        }
+      </ThemedText>
+    </View>
+  );
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText type="title">Leaderboard</ThemedText>
-        <View style={styles.viewToggle}>
+      <PageHeader 
+        title="Leaderboard" 
+        icon="trophy.fill"
+      />
+      
+      {/* View Toggle - iOS Segmented Control Style */}
+      <View style={styles.controlsContainer}>
+        <View style={[styles.segmentedControl, { backgroundColor: surfaceTertiaryColor, borderColor: borderMediumColor }]}>
           <TouchableOpacity
-            style={[styles.toggleButton, viewType === 'state' && styles.toggleButtonActive]}
+            style={[
+              styles.segmentButton,
+              viewType === 'state' && [styles.segmentButtonActive, { backgroundColor: surfaceColor }],
+            ]}
             onPress={() => setViewType('state')}
+            activeOpacity={0.7}
           >
-            <ThemedText style={viewType === 'state' ? styles.toggleTextActive : styles.toggleText}>
+            <ThemedText 
+              style={[
+                styles.segmentText, 
+                viewType === 'state' && [styles.segmentTextActive, { color: accentColor }]
+              ]}
+            >
               State
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, viewType === 'friends' && styles.toggleButtonActive]}
+            style={[
+              styles.segmentButton,
+              viewType === 'friends' && [styles.segmentButtonActive, { backgroundColor: surfaceColor }],
+            ]}
             onPress={() => setViewType('friends')}
+            activeOpacity={0.7}
           >
-            <ThemedText style={viewType === 'friends' ? styles.toggleTextActive : styles.toggleText}>
+            <ThemedText 
+              style={[
+                styles.segmentText, 
+                viewType === 'friends' && [styles.segmentTextActive, { color: accentColor }]
+              ]}
+            >
               Friends
             </ThemedText>
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.metrics}>
+      {/* Metric Pills */}
+      <View style={styles.metricsContainer}>
         {metrics.map((m) => (
           <TouchableOpacity
             key={m.value}
-            style={[styles.metricButton, metric === m.value && styles.metricButtonActive]}
+            style={[
+              styles.metricPill,
+              { 
+                borderColor: borderMediumColor, 
+                backgroundColor: surfaceColor 
+              },
+              metric === m.value && [
+                styles.metricPillActive, 
+                { backgroundColor: accentColor, borderColor: accentColor }
+              ],
+            ]}
             onPress={() => setMetric(m.value)}
+            activeOpacity={0.7}
           >
+            <ThemedText style={styles.metricEmoji}>{m.emoji}</ThemedText>
             <ThemedText
-              style={metric === m.value ? styles.metricTextActive : styles.metricText}
+              style={[
+                styles.metricText,
+                metric === m.value && styles.metricTextActive,
+              ]}
             >
               {m.label}
             </ThemedText>
@@ -74,13 +142,11 @@ export default function LeaderboardScreen() {
       </View>
 
       {loading ? (
-        <ThemedView style={styles.center}>
-          <ThemedText>Loading...</ThemedText>
-        </ThemedView>
+        <View style={styles.loadingContainer}>
+          <ThemedText type="caption">Loading leaderboard...</ThemedText>
+        </View>
       ) : entries.length === 0 ? (
-        <ThemedView style={styles.center}>
-          <ThemedText>No entries yet</ThemedText>
-        </ThemedView>
+        renderEmptyState()
       ) : (
         <FlatList
           data={entries}
@@ -88,7 +154,11 @@ export default function LeaderboardScreen() {
             <LeaderboardCard entry={item} rank={index + 1} metric={metric} />
           )}
           keyExtractor={(item) => item.user_id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            { paddingBottom: insets.bottom + 100 }
+          ]}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </ThemedView>
@@ -99,64 +169,94 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: 16,
-    gap: 12,
+  controlsContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
-  viewToggle: {
+  segmentedControl: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  toggleButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xs,
     borderWidth: 1,
-    borderColor: '#ddd',
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
   },
-  toggleButtonActive: {
-    backgroundColor: '#0a7ea4',
-    borderColor: '#0a7ea4',
+  segmentButtonActive: {
+    ...Shadows.sm,
   },
-  toggleText: {
-    fontSize: 14,
+  segmentText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '500',
   },
-  toggleTextActive: {
-    color: '#fff',
+  segmentTextActive: {
     fontWeight: '600',
   },
-  metrics: {
+  metricsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 8,
-    marginBottom: 8,
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  metricButton: {
+  metricPill: {
     flex: 1,
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xxs,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1.5,
   },
-  metricButtonActive: {
-    backgroundColor: '#0a7ea4',
-    borderColor: '#0a7ea4',
+  metricPillActive: {
+    ...Shadows.sm,
+  },
+  metricEmoji: {
+    fontSize: 12,
   },
   metricText: {
-    fontSize: 12,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '500',
   },
   metricTextActive: {
     color: '#fff',
     fontWeight: '600',
   },
   list: {
-    padding: 16,
+    paddingHorizontal: Spacing.lg,
   },
-  center: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing['3xl'],
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 36,
+  },
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  emptySubtext: {
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

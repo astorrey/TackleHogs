@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Button } from '@/components/ui/button';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BorderRadius, Spacing, Typography } from '@/constants/theme';
 import type { TackleItemType } from '@/lib/supabase/types';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase/client';
@@ -105,17 +107,35 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
     }
   };
 
-  const types: TackleItemType[] = ['rod', 'reel', 'lure', 'line', 'hook', 'other'];
+  const types: { value: TackleItemType; label: string; emoji: string }[] = [
+    { value: 'rod', label: 'Rod', emoji: '🎣' },
+    { value: 'reel', label: 'Reel', emoji: '🔄' },
+    { value: 'lure', label: 'Lure', emoji: '🪱' },
+    { value: 'line', label: 'Line', emoji: '🧵' },
+    { value: 'hook', label: 'Hook', emoji: '🪝' },
+    { value: 'other', label: 'Other', emoji: '📦' },
+  ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <ThemedView style={styles.form}>
-        <ThemedText type="title" style={styles.title}>
-          Add Tackle Item
-        </ThemedText>
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>
+            Add Tackle Item
+          </ThemedText>
+          <ThemedText type="caption" style={styles.subtitle}>
+            Add gear to your digital tackle box
+          </ThemedText>
+        </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Name *</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>
+            Name <ThemedText style={styles.required}>*</ThemedText>
+          </ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={name}
@@ -126,20 +146,27 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Type</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Type</ThemedText>
           <View style={styles.typeContainer}>
             {types.map((t) => (
               <TouchableOpacity
-                key={t}
+                key={t.value}
                 style={[
                   styles.typeButton,
                   { borderColor },
-                  type === t && { backgroundColor: accentColor, borderColor: accentColor }
+                  type === t.value && { backgroundColor: accentColor, borderColor: accentColor }
                 ]}
-                onPress={() => setType(t)}
+                onPress={() => setType(t.value)}
+                activeOpacity={0.7}
               >
-                <ThemedText style={type === t ? styles.typeButtonTextActive : styles.typeButtonText}>
-                  {t}
+                <ThemedText style={styles.typeEmoji}>{t.emoji}</ThemedText>
+                <ThemedText 
+                  style={[
+                    styles.typeButtonText, 
+                    type === t.value && styles.typeButtonTextActive
+                  ]}
+                >
+                  {t.label}
                 </ThemedText>
               </TouchableOpacity>
             ))}
@@ -147,7 +174,7 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Brand</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Brand</ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={brand}
@@ -158,7 +185,7 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Model</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Model</ThemedText>
           <TextInput
             style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={model}
@@ -169,7 +196,7 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Description</ThemedText>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Description</ThemedText>
           <TextInput
             style={[styles.input, styles.textArea, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={description}
@@ -178,30 +205,33 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
             placeholderTextColor={textSecondaryColor}
             multiline
             numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
         <View style={styles.field}>
-          <ThemedText type="defaultSemiBold">Image</ThemedText>
-          <TouchableOpacity style={[styles.imageButton, { borderColor }]} onPress={pickImage}>
-            <IconSymbol name="photo" size={24} />
-            <ThemedText>{imageUri ? 'Change Image' : 'Select Image'}</ThemedText>
-          </TouchableOpacity>
+          <ThemedText type="defaultSemiBold" style={styles.label}>Image</ThemedText>
+          <Button
+            variant="outline"
+            icon="photo"
+            onPress={pickImage}
+          >
+            {imageUri ? 'Change Image' : 'Select Image'}
+          </Button>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.cancelButton, { borderColor }]} onPress={onCancel}>
-            <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.submitButton, { backgroundColor: accentColor }, loading && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
+          <Button variant="outline" onPress={onCancel} style={styles.actionButton}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onPress={handleSubmit} 
+            loading={loading}
+            style={styles.actionButton}
           >
-            <ThemedText style={styles.submitButtonText}>
-              {loading ? 'Adding...' : 'Add Item'}
-            </ThemedText>
-          </TouchableOpacity>
+            Add Item
+          </Button>
         </View>
       </ThemedView>
     </ScrollView>
@@ -212,80 +242,72 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   form: {
-    padding: 20,
-    gap: 20,
+    padding: Spacing.xl,
+    gap: Spacing.lg,
+  },
+  header: {
+    marginBottom: Spacing.sm,
   },
   title: {
-    marginBottom: 10,
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
+    marginTop: Spacing.xs,
   },
   field: {
-    gap: 8,
+    gap: Spacing.sm,
+  },
+  label: {
+    fontSize: Typography.fontSize.sm,
+  },
+  required: {
+    color: '#DC2626',
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 44,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: Typography.fontSize.base,
+    minHeight: 48,
   },
   textArea: {
     minHeight: 100,
-    textAlignVertical: 'top',
+    paddingTop: Spacing.md,
   },
   typeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: Spacing.sm,
   },
   typeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
-  typeButtonText: {
+  typeEmoji: {
     fontSize: 14,
-    textTransform: 'capitalize',
+  },
+  typeButtonText: {
+    fontSize: Typography.fontSize.sm,
   },
   typeButtonTextActive: {
     color: '#fff',
-  },
-  imageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 8,
+    fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
   },
-  cancelButton: {
+  actionButton: {
     flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-  },
-  submitButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

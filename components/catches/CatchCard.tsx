@@ -4,6 +4,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatRelativeTime, formatWeight, formatLength } from '@/lib/utils/formatting';
+import { BorderRadius, Spacing, Shadows, Typography } from '@/constants/theme';
 
 interface CatchCardProps {
   catchData: any;
@@ -18,10 +19,17 @@ export function CatchCard({ catchData, onPress }: CatchCardProps) {
 
   const placeholderColor = useThemeColor({}, 'placeholder');
   const accentColor = useThemeColor({}, 'accent');
+  const surfaceColor = useThemeColor({}, 'surface');
+  const borderColor = useThemeColor({}, 'border');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <ThemedView style={styles.card}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <ThemedView
+        variant="card"
+        shadow="lg"
+        style={[styles.card, { borderColor }]}
+      >
         {catchData.photo_url ? (
           <Image source={{ uri: catchData.photo_url }} style={styles.image} contentFit="cover" />
         ) : (
@@ -33,51 +41,71 @@ export function CatchCard({ catchData, onPress }: CatchCardProps) {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.userInfo}>
-              {user?.avatar_url && (
+              {user?.avatar_url ? (
                 <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: accentColor }]}>
+                  <ThemedText style={styles.avatarInitial}>
+                    {(user?.display_name || user?.username || 'U')[0].toUpperCase()}
+                  </ThemedText>
+                </View>
               )}
-              <ThemedText type="defaultSemiBold">
+              <ThemedText type="defaultSemiBold" style={styles.username}>
                 {user?.display_name || user?.username || 'Unknown'}
               </ThemedText>
             </View>
-            <ThemedText type="caption" style={styles.time}>
+            <ThemedText type="caption" style={[styles.time, { color: textSecondaryColor }]}>
               {formatRelativeTime(catchData.caught_at)}
             </ThemedText>
           </View>
 
-          <ThemedText type="title" style={styles.fishName}>
+          <ThemedText type="subtitle" style={styles.fishName}>
             {fishSpecies?.common_name || 'Unknown Fish'}
           </ThemedText>
 
           <View style={styles.details}>
             {catchData.weight && (
-              <ThemedText type="subtitle" style={styles.detail}>
-                Weight: {formatWeight(catchData.weight)}
-              </ThemedText>
+              <View style={styles.detailItem}>
+                <ThemedText type="caption" style={styles.detailLabel}>Weight</ThemedText>
+                <ThemedText type="defaultSemiBold" style={styles.detailValue}>
+                  {formatWeight(catchData.weight)}
+                </ThemedText>
+              </View>
             )}
             {catchData.length && (
-              <ThemedText type="subtitle" style={styles.detail}>
-                Length: {formatLength(catchData.length)}
-              </ThemedText>
+              <View style={styles.detailItem}>
+                <ThemedText type="caption" style={styles.detailLabel}>Length</ThemedText>
+                <ThemedText type="defaultSemiBold" style={styles.detailValue}>
+                  {formatLength(catchData.length)}
+                </ThemedText>
+              </View>
             )}
           </View>
 
-          {location && (
-            <ThemedText type="caption" style={styles.location}>
-              📍 {location.name}
-            </ThemedText>
-          )}
+          <View style={styles.metadata}>
+            {location && (
+              <View style={styles.metaItem}>
+                <ThemedText style={styles.metaIcon}>📍</ThemedText>
+                <ThemedText type="caption" numberOfLines={1} style={styles.metaText}>
+                  {location.name}
+                </ThemedText>
+              </View>
+            )}
 
-          {tackleItem && (
-            <ThemedText type="caption" style={styles.tackle}>
-              🎣 {tackleItem.name}
-            </ThemedText>
-          )}
+            {tackleItem && (
+              <View style={styles.metaItem}>
+                <ThemedText style={styles.metaIcon}>🎣</ThemedText>
+                <ThemedText type="caption" numberOfLines={1} style={styles.metaText}>
+                  {tackleItem.name}
+                </ThemedText>
+              </View>
+            )}
+          </View>
 
           {catchData.points > 0 && (
             <View style={[styles.points, { backgroundColor: accentColor }]}>
               <ThemedText type="defaultSemiBold" style={styles.pointsText}>
-                +{catchData.points} points
+                +{catchData.points} pts
               </ThemedText>
             </View>
           )}
@@ -90,29 +118,30 @@ export function CatchCard({ catchData, onPress }: CatchCardProps) {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    gap: 12,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.lg,
+    gap: Spacing.lg,
+    borderWidth: 1.5,
   },
   image: {
     width: 100,
     height: 100,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
   },
   placeholder: {
     width: 100,
     height: 100,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    fontSize: 32,
+    fontSize: 36,
   },
   content: {
     flex: 1,
-    gap: 6,
+    gap: Spacing.sm,
   },
   header: {
     flexDirection: 'row',
@@ -122,43 +151,74 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.sm,
   },
   avatar: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: BorderRadius.full,
   },
-  time: {
-    opacity: 0.6,
+  avatarPlaceholder: {
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  avatarInitial: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  username: {
+    fontSize: Typography.fontSize.sm,
+  },
+  time: {},
   fishName: {
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
   details: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
+    gap: Spacing.lg,
+    marginTop: Spacing.xs,
   },
-  detail: {
-    opacity: 0.8,
+  detailItem: {
+    gap: 2,
   },
-  location: {
-    opacity: 0.7,
-    marginTop: 4,
+  detailLabel: {
+    textTransform: 'uppercase',
+    fontSize: 10,
+    letterSpacing: 0.5,
   },
-  tackle: {
-    opacity: 0.7,
+  detailValue: {
+    fontSize: Typography.fontSize.sm,
+  },
+  metadata: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  metaIcon: {
+    fontSize: 12,
+  },
+  metaText: {
+    maxWidth: 100,
   },
   points: {
-    marginTop: 8,
+    marginTop: Spacing.sm,
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
   },
   pointsText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: Typography.fontSize.xs,
   },
 });

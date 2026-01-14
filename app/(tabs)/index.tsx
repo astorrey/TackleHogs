@@ -1,31 +1,48 @@
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CatchCard } from '@/components/catches/CatchCard';
+import { PageHeader } from '@/components/ui/page-header';
 import { useAuth } from '@/hooks/use-auth';
 import { useFriendCatches } from '@/hooks/use-catches';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { router } from 'expo-router';
+import { Spacing, BorderRadius } from '@/constants/theme';
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const { catches, loading, refresh, loadMore, hasMore } = useFriendCatches(user?.id || null);
+  const insets = useSafeAreaInsets();
+  const accentColor = useThemeColor({}, 'accent');
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={[styles.emptyIconContainer, { backgroundColor: `${accentColor}15` }]}>
+        <ThemedText style={styles.emptyIcon}>🎣</ThemedText>
+      </View>
+      <ThemedText type="subtitle" style={styles.emptyTitle}>
+        No catches yet
+      </ThemedText>
+      <ThemedText type="caption" style={styles.emptySubtext}>
+        Start logging your catches to see them here.{'\n'}Your friends' catches will also appear in this feed.
+      </ThemedText>
+    </View>
+  );
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText type="title">Feed</ThemedText>
-      </View>
+      <PageHeader 
+        title="Feed" 
+        icon="house.fill"
+        subtitle="Recent catches from you and friends"
+      />
       {loading && catches.length === 0 ? (
-        <ThemedView style={styles.center}>
-          <ThemedText>Loading...</ThemedText>
-        </ThemedView>
+        <View style={styles.loadingContainer}>
+          <ThemedText type="caption">Loading catches...</ThemedText>
+        </View>
       ) : catches.length === 0 ? (
-        <ThemedView style={styles.center}>
-          <ThemedText>No catches yet</ThemedText>
-          <ThemedText type="subtitle" style={styles.emptySubtext}>
-            Start logging catches to see them here
-          </ThemedText>
-        </ThemedView>
+        renderEmptyState()
       ) : (
         <FlatList
           data={catches}
@@ -36,14 +53,24 @@ export default function HomeScreen() {
             />
           )}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
+          contentContainerStyle={[
+            styles.list,
+            { paddingBottom: insets.bottom + 100 }
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={refresh}
+              tintColor={accentColor}
+            />
+          }
           onEndReached={() => {
             if (hasMore && !loading) {
               loadMore();
             }
           }}
           onEndReachedThreshold={0.5}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </ThemedView>
@@ -54,20 +81,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: 16,
-  },
   list: {
-    padding: 16,
+    paddingHorizontal: Spacing.lg,
   },
-  center: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing['3xl'],
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 36,
+  },
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
   },
   emptySubtext: {
-    marginTop: 8,
-    opacity: 0.6,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
