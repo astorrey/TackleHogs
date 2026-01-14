@@ -5,25 +5,38 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Moss green accent colors
+const accentLight = '#6B7A4E';
+const accentDark = '#8B9862';
 
 export const Colors = {
   light: {
     text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
+    textSecondary: '#666666',
+    background: '#F5F5F5',
+    surface: '#FFFFFF',
+    tint: accentLight,
+    accent: accentLight,
+    border: '#E0E0E0',
     icon: '#687076',
     tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    tabIconSelected: accentLight,
+    placeholder: '#E8E8E8',
+    error: '#D32F2F',
   },
   dark: {
     text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
+    textSecondary: '#9BA1A6',
+    background: '#1A1A1A',
+    surface: '#252525',
+    tint: accentDark,
+    accent: accentDark,
+    border: '#3A3A3A',
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: accentDark,
+    placeholder: '#3A3A3A',
+    error: '#EF5350',
   },
 };
 

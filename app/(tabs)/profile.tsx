@@ -2,11 +2,15 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuth } from '@/hooks/use-auth';
 import { router } from 'expo-router';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const accentColor = useThemeColor({}, 'accent');
+  const borderColor = useThemeColor({}, 'border');
+  const errorColor = useThemeColor({}, 'error');
 
   const handleLogout = async () => {
     await logout();
@@ -19,7 +23,7 @@ export default function ProfileScreen() {
         {user?.user_metadata?.avatar_url ? (
           <Image source={{ uri: user.user_metadata.avatar_url }} style={styles.avatar} />
         ) : (
-          <View style={styles.avatarPlaceholder}>
+          <View style={[styles.avatarPlaceholder, { backgroundColor: accentColor }]}>
             <ThemedText style={styles.avatarText}>
               {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
             </ThemedText>
@@ -36,14 +40,14 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.menu}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={[styles.menuItem, { borderColor }]}>
           <ThemedText>Settings</ThemedText>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={[styles.menuItem, { borderColor }]}>
           <ThemedText>Year-End Review</ThemedText>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-          <ThemedText style={styles.logoutText}>Sign Out</ThemedText>
+        <TouchableOpacity style={[styles.menuItem, { borderColor }]} onPress={handleLogout}>
+          <ThemedText style={{ color: errorColor }}>Sign Out</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -68,7 +72,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#0a7ea4',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -91,9 +94,5 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  logoutText: {
-    color: '#ff3b30',
   },
 });

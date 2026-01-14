@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase/client';
 import { calculatePointsLocal } from '@/lib/services/points';
@@ -24,6 +25,12 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
   const [notes, setNotes] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const borderColor = useThemeColor({}, 'border');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
+  const surfaceColor = useThemeColor({}, 'surface');
+  const accentColor = useThemeColor({}, 'accent');
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -131,33 +138,33 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Fish Species *</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={fishSpeciesId}
             onChangeText={setFishSpeciesId}
             placeholder="Search for fish species"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Location</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={locationId}
             onChangeText={setLocationId}
             placeholder="Select or create location"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Tackle Used</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={tackleItemId}
             onChangeText={setTackleItemId}
             placeholder="Select tackle item"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
@@ -165,22 +172,22 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
           <View style={[styles.field, styles.half]}>
             <ThemedText type="defaultSemiBold">Weight (lbs)</ThemedText>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
               value={weight}
               onChangeText={setWeight}
               placeholder="0.00"
-              placeholderTextColor="#999"
+              placeholderTextColor={textSecondaryColor}
               keyboardType="decimal-pad"
             />
           </View>
           <View style={[styles.field, styles.half]}>
             <ThemedText type="defaultSemiBold">Length (in)</ThemedText>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
               value={length}
               onChangeText={setLength}
               placeholder="0.0"
-              placeholderTextColor="#999"
+              placeholderTextColor={textSecondaryColor}
               keyboardType="decimal-pad"
             />
           </View>
@@ -189,11 +196,11 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Notes</ThemedText>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={notes}
             onChangeText={setNotes}
             placeholder="Add notes about your catch"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
             multiline
             numberOfLines={4}
           />
@@ -201,17 +208,17 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Photo</ThemedText>
-          <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+          <TouchableOpacity style={[styles.imageButton, { borderColor }]} onPress={pickImage}>
             <ThemedText>{photoUri ? 'Change Photo' : 'Take Photo'}</ThemedText>
           </TouchableOpacity>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+          <TouchableOpacity style={[styles.cancelButton, { borderColor }]} onPress={onCancel}>
             <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[styles.submitButton, { backgroundColor: accentColor }, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -248,7 +255,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -261,7 +267,6 @@ const styles = StyleSheet.create({
   imageButton: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -275,7 +280,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     alignItems: 'center',
   },
   cancelButtonText: {
@@ -285,7 +289,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#0a7ea4',
     alignItems: 'center',
   },
   submitButtonDisabled: {

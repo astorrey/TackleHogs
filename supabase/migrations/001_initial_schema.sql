@@ -1,5 +1,5 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- UUID generation uses built-in gen_random_uuid() function (PostgreSQL 13+)
+-- No extension needed for Supabase
 
 -- Create enums
 CREATE TYPE tackle_item_type AS ENUM ('rod', 'reel', 'lure', 'line', 'hook', 'other');
@@ -19,7 +19,7 @@ CREATE TABLE public.users (
 
 -- Fish species table
 CREATE TABLE public.fish_species (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     common_name TEXT NOT NULL,
     scientific_name TEXT,
     image_url TEXT,
@@ -28,7 +28,7 @@ CREATE TABLE public.fish_species (
 
 -- Tackle items table
 CREATE TABLE public.tackle_items (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     type tackle_item_type NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE public.tackle_item_tags (
 
 -- Locations table (water bodies)
 CREATE TABLE public.locations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     type location_type NOT NULL,
     latitude DECIMAL(10, 8) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE public.locations (
 
 -- Catches table
 CREATE TABLE public.catches (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     location_id UUID REFERENCES public.locations(id) ON DELETE SET NULL,
     fish_species_id UUID NOT NULL REFERENCES public.fish_species(id),
@@ -84,7 +84,7 @@ CREATE TABLE public.catches (
 
 -- Friendships table
 CREATE TABLE public.friendships (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     friend_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     status friendship_status DEFAULT 'pending',
@@ -96,7 +96,7 @@ CREATE TABLE public.friendships (
 
 -- Comments table
 CREATE TABLE public.comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     catch_id UUID NOT NULL REFERENCES public.catches(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
@@ -121,7 +121,9 @@ CREATE INDEX idx_tackle_items_user_id ON public.tackle_items(user_id);
 CREATE INDEX idx_catches_user_id ON public.catches(user_id);
 CREATE INDEX idx_catches_caught_at ON public.catches(caught_at DESC);
 CREATE INDEX idx_catches_location_id ON public.catches(location_id);
-CREATE INDEX idx_locations_coordinates ON public.locations USING GIST (ll_to_earth(latitude, longitude));
+-- Geospatial index (requires PostGIS extension - enabled by default in Supabase)
+-- Using a simpler btree index for now; can be upgraded to GIST with PostGIS if needed
+CREATE INDEX idx_locations_lat_lng ON public.locations(latitude, longitude);
 CREATE INDEX idx_friendships_user_id ON public.friendships(user_id);
 CREATE INDEX idx_friendships_friend_id ON public.friendships(friend_id);
 CREATE INDEX idx_friendships_status ON public.friendships(status);

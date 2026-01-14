@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatRelativeTime, formatWeight, formatLength } from '@/lib/utils/formatting';
 
 interface CatchCardProps {
@@ -15,13 +16,16 @@ export function CatchCard({ catchData, onPress }: CatchCardProps) {
   const tackleItem = catchData.tackle_item;
   const user = catchData.user;
 
+  const placeholderColor = useThemeColor({}, 'placeholder');
+  const accentColor = useThemeColor({}, 'accent');
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <ThemedView style={styles.card}>
         {catchData.photo_url ? (
           <Image source={{ uri: catchData.photo_url }} style={styles.image} contentFit="cover" />
         ) : (
-          <View style={styles.placeholder}>
+          <View style={[styles.placeholder, { backgroundColor: placeholderColor }]}>
             <ThemedText style={styles.placeholderText}>🐟</ThemedText>
           </View>
         )}
@@ -71,7 +75,7 @@ export function CatchCard({ catchData, onPress }: CatchCardProps) {
           )}
 
           {catchData.points > 0 && (
-            <View style={styles.points}>
+            <View style={[styles.points, { backgroundColor: accentColor }]}>
               <ThemedText type="defaultSemiBold" style={styles.pointsText}>
                 +{catchData.points} points
               </ThemedText>
@@ -100,7 +104,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -150,7 +153,6 @@ const styles = StyleSheet.create({
   points: {
     marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#0a7ea4',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

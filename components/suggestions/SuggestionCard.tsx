@@ -1,6 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import type { Suggestion } from '@/lib/services/suggestions';
 
 interface SuggestionCardProps {
@@ -9,6 +10,8 @@ interface SuggestionCardProps {
 }
 
 export function SuggestionCard({ suggestion, onPress }: SuggestionCardProps) {
+  const accentColor = useThemeColor({}, 'accent');
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <ThemedView style={styles.card}>
@@ -26,7 +29,7 @@ export function SuggestionCard({ suggestion, onPress }: SuggestionCardProps) {
               {suggestion.type}
             </ThemedText>
           </View>
-          <View style={styles.scoreContainer}>
+          <View style={[styles.scoreContainer, { backgroundColor: accentColor }]}>
             <ThemedText type="title" style={styles.score}>
               {suggestion.score}
             </ThemedText>
@@ -70,7 +73,6 @@ const styles = StyleSheet.create({
   },
   scoreContainer: {
     alignItems: 'center',
-    backgroundColor: '#0a7ea4',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,

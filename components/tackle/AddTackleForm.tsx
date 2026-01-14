@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { TackleItemType } from '@/lib/supabase/types';
 import * as ImagePicker from 'expo-image-picker';
@@ -21,6 +22,12 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const borderColor = useThemeColor({}, 'border');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
+  const surfaceColor = useThemeColor({}, 'surface');
+  const accentColor = useThemeColor({}, 'accent');
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -110,11 +117,11 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Name *</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={name}
             onChangeText={setName}
             placeholder="Enter item name"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
@@ -124,7 +131,11 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
             {types.map((t) => (
               <TouchableOpacity
                 key={t}
-                style={[styles.typeButton, type === t && styles.typeButtonActive]}
+                style={[
+                  styles.typeButton,
+                  { borderColor },
+                  type === t && { backgroundColor: accentColor, borderColor: accentColor }
+                ]}
                 onPress={() => setType(t)}
               >
                 <ThemedText style={type === t ? styles.typeButtonTextActive : styles.typeButtonText}>
@@ -138,33 +149,33 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Brand</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={brand}
             onChangeText={setBrand}
             placeholder="Enter brand"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Model</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={model}
             onChangeText={setModel}
             placeholder="Enter model"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
           />
         </View>
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Description</ThemedText>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { borderColor, color: textColor, backgroundColor: surfaceColor }]}
             value={description}
             onChangeText={setDescription}
             placeholder="Enter description"
-            placeholderTextColor="#999"
+            placeholderTextColor={textSecondaryColor}
             multiline
             numberOfLines={4}
           />
@@ -172,18 +183,18 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
 
         <View style={styles.field}>
           <ThemedText type="defaultSemiBold">Image</ThemedText>
-          <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+          <TouchableOpacity style={[styles.imageButton, { borderColor }]} onPress={pickImage}>
             <IconSymbol name="photo" size={24} />
             <ThemedText>{imageUri ? 'Change Image' : 'Select Image'}</ThemedText>
           </TouchableOpacity>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+          <TouchableOpacity style={[styles.cancelButton, { borderColor }]} onPress={onCancel}>
             <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[styles.submitButton, { backgroundColor: accentColor }, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -213,7 +224,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -233,11 +243,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  typeButtonActive: {
-    backgroundColor: '#0a7ea4',
-    borderColor: '#0a7ea4',
   },
   typeButtonText: {
     fontSize: 14,
@@ -252,7 +257,6 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
   },
   actions: {
@@ -265,7 +269,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     alignItems: 'center',
   },
   cancelButtonText: {
@@ -275,7 +278,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#0a7ea4',
     alignItems: 'center',
   },
   submitButtonDisabled: {

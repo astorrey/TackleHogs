@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { Database } from '@/lib/supabase/types';
 
@@ -13,13 +14,15 @@ interface TackleItemCardProps {
 }
 
 export function TackleItemCard({ item, onPress }: TackleItemCardProps) {
+  const placeholderColor = useThemeColor({}, 'placeholder');
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <ThemedView style={styles.card}>
         {item.image_url ? (
           <Image source={{ uri: item.image_url }} style={styles.image} contentFit="cover" />
         ) : (
-          <View style={styles.placeholder}>
+          <View style={[styles.placeholder, { backgroundColor: placeholderColor }]}>
             <IconSymbol name="tray.fill" size={32} />
           </View>
         )}
@@ -58,7 +61,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },

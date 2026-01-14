@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatPoints, formatWeight, formatLength } from '@/lib/utils/formatting';
 import type { LeaderboardEntry } from '@/lib/api/leaderboard';
 
@@ -12,6 +13,7 @@ interface LeaderboardCardProps {
 }
 
 export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
+  const accentColor = useThemeColor({}, 'accent');
   const getMetricValue = () => {
     switch (metric) {
       case 'points':
@@ -49,7 +51,7 @@ export function LeaderboardCard({ entry, rank, metric }: LeaderboardCardProps) {
       {entry.avatar_url ? (
         <Image source={{ uri: entry.avatar_url }} style={styles.avatar} />
       ) : (
-        <View style={styles.avatarPlaceholder}>
+        <View style={[styles.avatarPlaceholder, { backgroundColor: accentColor }]}>
           <ThemedText style={styles.avatarText}>
             {(entry.display_name || entry.username || 'U')[0].toUpperCase()}
           </ThemedText>
@@ -106,7 +108,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#0a7ea4',
     justifyContent: 'center',
     alignItems: 'center',
   },
