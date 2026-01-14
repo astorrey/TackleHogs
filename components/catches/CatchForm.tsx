@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,8 @@ import { supabase } from '@/lib/supabase/client';
 import { calculatePointsLocal } from '@/lib/services/points';
 import { getWeatherData } from '@/lib/services/weather';
 import { useCurrentLocation } from '@/hooks/use-location';
+
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
 interface CatchFormProps {
   userId: string;
@@ -28,6 +31,7 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const borderColor = useThemeColor({}, 'border');
   const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
@@ -134,7 +138,10 @@ export function CatchForm({ userId, onSubmit, onCancel }: CatchFormProps) {
   return (
     <ScrollView 
       style={styles.container} 
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingBottom: insets.bottom + TAB_BAR_HEIGHT }
+      ]}
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={styles.form}>

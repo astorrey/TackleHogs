@@ -50,6 +50,7 @@ export function TackleBox({ items, onItemPress, loading }: TackleBoxProps) {
         <TackleItemCard item={item} onPress={() => onItemPress?.(item)} />
       )}
       keyExtractor={(item) => item.id}
+      style={styles.flatList}
       contentContainerStyle={[
         styles.list,
         { paddingBottom: insets.bottom + 100 }
@@ -64,6 +65,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  flatList: {
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.lg,

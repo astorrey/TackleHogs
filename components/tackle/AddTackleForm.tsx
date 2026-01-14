@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { BorderRadius, Spacing, Typography } from '@/constants/theme';
 import type { TackleItemType } from '@/lib/supabase/types';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase/client';
+
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
 interface AddTackleFormProps {
   userId: string;
@@ -25,6 +28,7 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const borderColor = useThemeColor({}, 'border');
   const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
@@ -119,7 +123,10 @@ export function AddTackleForm({ userId, onSubmit, onCancel }: AddTackleFormProps
   return (
     <ScrollView 
       style={styles.container} 
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingBottom: insets.bottom + TAB_BAR_HEIGHT }
+      ]}
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={styles.form}>

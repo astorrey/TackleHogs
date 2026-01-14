@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { TackleBox } from '@/components/tackle/TackleBox';
 import { AddTackleForm } from '@/components/tackle/AddTackleForm';
@@ -18,6 +19,7 @@ export default function TackleBoxScreen() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showScrapeForm, setShowScrapeForm] = useState(false);
   const [scrapedData, setScrapedData] = useState<any>(null);
+  const insets = useSafeAreaInsets();
   const accentColor = useThemeColor({}, 'accent');
   const borderColor = useThemeColor({}, 'borderMedium');
 
@@ -36,7 +38,7 @@ export default function TackleBoxScreen() {
 
   if (showScrapeForm) {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
         <ScrapeLinkForm onScraped={handleScraped} onCancel={() => setShowScrapeForm(false)} />
       </ThemedView>
     );
@@ -44,7 +46,7 @@ export default function TackleBoxScreen() {
 
   if (showAddForm) {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
         {user && (
           <AddTackleForm
             userId={user.id}
