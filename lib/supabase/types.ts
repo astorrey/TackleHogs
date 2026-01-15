@@ -93,6 +93,9 @@ export interface Database {
           common_name: string;
           scientific_name: string | null;
           image_url: string | null;
+          rarity: number;
+          average_weight: number | null;
+          description: string | null;
           created_at: string;
         };
         Insert: {
@@ -100,6 +103,9 @@ export interface Database {
           common_name: string;
           scientific_name?: string | null;
           image_url?: string | null;
+          rarity?: number;
+          average_weight?: number | null;
+          description?: string | null;
           created_at?: string;
         };
         Update: {
@@ -107,6 +113,9 @@ export interface Database {
           common_name?: string;
           scientific_name?: string | null;
           image_url?: string | null;
+          rarity?: number;
+          average_weight?: number | null;
+          description?: string | null;
         };
       };
       locations: {

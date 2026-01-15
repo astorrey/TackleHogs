@@ -90,3 +90,82 @@ export async function updateLocation(id: string, updates: LocationUpdate) {
   if (error) throw error;
   return data;
 }
+
+export async function getLocationsInBounds(
+  northEast: { latitude: number; longitude: number },
+  southWest: { latitude: number; longitude: number },
+  limit = 100
+) {
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*')
+    .gte('latitude', southWest.latitude)
+    .lte('latitude', northEast.latitude)
+    .gte('longitude', southWest.longitude)
+    .lte('longitude', northEast.longitude)
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getRecentCatchesAtLocation(locationId: string, limit = 5) {
+  const { data, error } = await supabase
+    .from('catches')
+    .select(`
+      id,
+      weight,
+      length,
+      photo_url,
+      caught_at,
+      user:user_id (
+        id,
+        username,
+        display_name,
+        avatar_url
+      ),
+      fish_species:fish_species_id (
+        id,
+        common_name,
+        image_url
+      )
+    `)
+    .eq('location_id', locationId)
+    .order('caught_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getCatchCountAtLocation(locationId: string) {
+  const { count, error } = await supabase
+    .from('catches')
+    .select('*', { count: 'exact', head: true })
+    .eq('location_id', locationId);
+
+  if (error) throw error;
+  return count || 0;
+}
+
+export function getLocationTypeIcon(type: string): string {
+  switch (type) {
+    case 'pond': return 'drop.fill';
+    case 'lake': return 'water.waves';
+    case 'river': return 'arrow.left.arrow.right';
+    case 'stream': return 'arrow.right';
+    case 'ocean': return 'globe.americas.fill';
+    default: return 'mappin';
+  }
+}
+
+export function getLocationTypeColor(type: string): string {
+  switch (type) {
+    case 'pond': return '#3B82F6';
+    case 'lake': return '#0EA5E9';
+    case 'river': return '#14B8A6';
+    case 'stream': return '#22C55E';
+    case 'ocean': return '#6366F1';
+    default: return '#8B5CF6';
+  }
+}

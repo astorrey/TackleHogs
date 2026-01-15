@@ -28,6 +28,11 @@ export default function ProfileScreen() {
 
   const menuItems = [
     { 
+      icon: 'person.2' as const,
+      label: 'Friends',
+      onPress: () => router.push('/friends'),
+    },
+    { 
       icon: 'gearshape' as const,
       label: 'Settings',
       onPress: () => {},

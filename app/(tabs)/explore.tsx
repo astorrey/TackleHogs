@@ -1,112 +1,122 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { FishingMap } from '@/components/map';
+import { WeatherWidget } from '@/components/weather';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { BorderRadius, Spacing, Shadows, Typography } from '@/constants/theme';
+import type { Database } from '@/lib/supabase/types';
 
-export default function TabTwoScreen() {
+type LocationData = Database['public']['Tables']['locations']['Row'];
+
+export default function ExploreScreen() {
+  const router = useRouter();
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+
+  const backgroundColor = useThemeColor({}, 'background');
+  const secondaryText = useThemeColor({}, 'textSecondary');
+
+  useEffect(() => {
+    async function getLocation() {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status === 'granted');
+
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({});
+        setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      }
+    }
+
+    getLocation();
+  }, []);
+
+  const handleLocationSelect = (location: LocationData) => {
+    setSelectedLocation(location);
+    // Could navigate to a location detail screen
+    // router.push(`/location/${location.id}`);
+  };
+
+  const initialRegion = userLocation
+    ? {
+        ...userLocation,
+        latitudeDelta: 0.5,
+        longitudeDelta: 0.5,
+      }
+    : {
+        latitude: 39.8283,
+        longitude: -98.5795,
+        latitudeDelta: 30,
+        longitudeDelta: 30,
+      };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={[styles.container, { backgroundColor }]}>
+      {/* Weather Widget Overlay */}
+      {userLocation && (
+        <View style={styles.weatherOverlay}>
+          <WeatherWidget
+            latitude={userLocation.latitude}
+            longitude={userLocation.longitude}
+            variant="compact"
+          />
+        </View>
+      )}
+
+      {/* Map */}
+      <FishingMap
+        initialRegion={initialRegion}
+        onLocationSelect={handleLocationSelect}
+        showUserLocation={locationPermission === true}
+        userLocation={userLocation}
+      />
+
+      {/* Permission denied message */}
+      {locationPermission === false && (
+        <ThemedView style={[styles.permissionBanner, Shadows.md]}>
+          <IconSymbol name="location.slash" size={20} color={secondaryText} />
+          <ThemedText style={[styles.permissionText, { color: secondaryText }]}>
+            Enable location access to see fishing spots near you
+          </ThemedText>
+        </ThemedView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  weatherOverlay: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 20,
+    left: Spacing.lg,
+    right: Spacing.lg,
+    zIndex: 10,
+  },
+  permissionBanner: {
+    position: 'absolute',
+    bottom: 100,
+    left: Spacing.lg,
+    right: Spacing.lg,
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+  },
+  permissionText: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
   },
 });
